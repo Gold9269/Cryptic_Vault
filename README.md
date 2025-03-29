@@ -1,4 +1,3 @@
-# CryptedVaultYT
 ## Crypted IPFS Vault using MERN Stack and Blockchain
 
 ### Overview
