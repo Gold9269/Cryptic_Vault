@@ -12,7 +12,6 @@ export const connectWallet = async () => {
       throw new Error("MetaMask is not installed");
     }
 
-    // Check if there's already a pending request
     if (isConnectionPending) {
       throw { 
         code: -32002,
@@ -22,7 +21,6 @@ export const connectWallet = async () => {
 
     isConnectionPending = true;
 
-    // First check existing connections
     const existingAccounts = await window.ethereum.request({ 
       method: "eth_accounts" 
     }).catch(() => []);
@@ -30,13 +28,16 @@ export const connectWallet = async () => {
     if (existingAccounts.length > 0) {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const contractAddress = "0x9dCd9Ad2e6eE604530f6E5372aAE3E1d7C52a925";
-      const contractInstance = new ethers.Contract(contractAddress, contractAbi, signer);
+      const contractAddress = "0x8F2095E50c14cEF5f7082A90d4bf64cb78271eA7";
+      const contractInstance = new ethers.Contract(
+        contractAddress, 
+        contractAbi.abi, // Fixed: using contractAbi.abi instead of contractAbi
+        signer
+      );
       isConnectionPending = false;
       return { contractInstance, selectedAccount: existingAccounts[0] };
     }
 
-    // Request new connection with cleanup
     let accounts;
     try {
       accounts = await Promise.race([
@@ -53,11 +54,9 @@ export const connectWallet = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
 
-    // Sign message
     const message = "Welcome to Crypto Vault Website";
     const signature = await signer.signMessage(message);
 
-    // Authenticate with backend
     const { data } = await axios.post(
       `http://localhost:3000/api/authentication?address=${selectedAccount}`,
       { signature }
@@ -65,10 +64,9 @@ export const connectWallet = async () => {
 
     localStorage.setItem("token", data.token);
 
-    // Create contract instance
     const contractInstance = new ethers.Contract(
       "0x9dCd9Ad2e6eE604530f6E5372aAE3E1d7C52a925",
-      contractAbi,
+      contractAbi.abi, // Fixed: using contractAbi.abi instead of contractAbi
       signer
     );
     
